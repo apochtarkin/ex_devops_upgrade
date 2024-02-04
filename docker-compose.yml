@@ -1,0 +1,44 @@
+version: "2.11"
+services:
+
+  om:
+    image: apache/openmeetings:7.2.0
+    container_name: openmeetings
+    restart: always
+    ports:
+      - "5443:5443"
+    volumes:
+      - /home/user/project/omdata/:/opt/omdata/
+    environment:
+      OM_KURENTO_WS_URL: ws://localhost:8888/kurento
+      OM_DB_HOST: localhost
+      OM_DB_USER: "om_admin"
+      OM_DB_PASS: "user_pass"
+    links:
+      - mariadb
+    networks:
+      dockervlan:
+        ipv4_address: 192.168.1.60
+
+  mariadb:
+    image: mariadb
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    volumes:
+      - /home/user/project/mysql:/var/lib/mysql
+    environment:
+      MARIADB_ROOT_PASSWORD: root_pass
+      MARIADB_USER: om_admin
+      MARIADB_PASSWORD: user_pass
+
+networks:
+  dockervlan:
+    name: dockervlan
+    driver: macvlan
+    driver_opts:
+      parent: enp0s3
+    ipam:
+      config:
+        - subnet: "192.168.1.0/24"
+          gateway: "192.168.1.1"
